@@ -1,4 +1,4 @@
-require "action_controller/session/redis_session_store"
+# require "action_controller/session/redis_session_store"
 
 module DeviseCasAuthenticatable
   module SingleSignOut
