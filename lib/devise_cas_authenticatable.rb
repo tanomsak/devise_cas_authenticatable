@@ -15,6 +15,10 @@ if defined?(Redis::Store)
   require 'devise_cas_authenticatable/single_sign_out/session_store/redis'
 end
 
+if defined?(ActionDispatch::Session::CacheStore)
+  require 'devise_cas_authenticatable/single_sign_out/session_store/cache_store'
+end
+
 require 'rubycas-client'
 
 # Register as a Rails engine if Rails::Engine exists
@@ -62,11 +66,11 @@ module Devise
 
   # Should devise_cas_authenticatable attempt to create new user records for
   # unknown usernames?  True by default.
-  @@cas_create_user = true
+  @@cas_create_user = false
   
   # The model attribute used for query conditions. Should be the same as
   # the rubycas-server username_column. :username by default
-  @@cas_username_column = :username
+  @@cas_username_column = :email
 
   # Name of the parameter passed in the logout query 
   @@cas_destination_logout_param_name = nil

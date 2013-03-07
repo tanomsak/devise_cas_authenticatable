@@ -16,7 +16,11 @@ module Devise
       def authenticate!
         ticket = read_ticket(params)
         if ticket
+            # Rails.logger.info " begin authenticate! "          
           if resource = mapping.to.authenticate_with_cas_ticket(ticket)
+
+            # Rails.logger.info " authenticate! #{ticket}, #{request.session} ,#{session}"
+
             # Store the ticket in the session for later usage
             if ::Devise.cas_enable_single_sign_out
               session['cas_last_valid_ticket'] = ticket.ticket

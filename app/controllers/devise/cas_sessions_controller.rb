@@ -1,13 +1,15 @@
 class Devise::CasSessionsController < Devise::SessionsController
   unloadable
 
-  def new
+  def new    
     unless returning_from_cas?
       redirect_to(cas_login_url)
     end
   end
 
   def service
+    # logger.debug "resource_name = #{resource_name}"
+
     redirect_to after_sign_in_path_for(warden.authenticate!(:scope => resource_name))
   end
 
@@ -36,8 +38,14 @@ class Devise::CasSessionsController < Devise::SessionsController
       session_index = read_session_index
       if session_index
         logger.debug "Intercepted single-sign-out request for CAS session #{session_index}."
+        # logger.debug "DeviseCasAuthenticatable::SingleSignOut::Strategies = #{::DeviseCasAuthenticatable::SingleSignOut::Strategies.current_strategy }"
+
         session_id = ::DeviseCasAuthenticatable::SingleSignOut::Strategies.current_strategy.find_session_id_by_index(session_index)
+        # logger.debug "session_id = #{session_id}"
+
         if session_id
+          # logger.debug "if session_id = true, let destroy_cas_session"
+
           destroy_cas_session(session_id, session_index)
         end
       else
@@ -64,15 +72,23 @@ class Devise::CasSessionsController < Devise::SessionsController
   end
 
   def destroy_cas_session(session_id, session_index)
-    if session_store && session_store.respond_to?(:destroy_session)
-      if session_store.destroy_session(session_id)
-        logger.debug "Destroyed session #{session_id} corresponding to service ticket #{session_index}."
-      else
-        logger.debug "Data for session #{session_id} was not found. It may have already been cleared by a local CAS logout request."
-      end
-    else
-      logger.warn "A single sign out request was received for ticket #{session_index} but the Rails session_store is not a type supported for single-sign-out by devise_cas_authenticatable."
-    end
+    # if session_store && session_store.respond_to?(:destroy_session)
+    #   if session_store.destroy_session(session_id)
+    #     logger.debug "Destroyed session #{session_id} corresponding to service ticket #{session_index}."
+    #   else
+    #     logger.debug "Data for session #{session_id} was not found. It may have already been cleared by a local CAS logout request."
+    #   end
+    # else
+    #   logger.warn "A single sign out request was received for ticket #{session_index} but the Rails session_store is not a type supported for single-sign-out by devise_cas_authenticatable."
+    # end
+
+    app = Rails.application.app
+
+    begin
+      app = app.instance_variable_get :@app
+    end until app.nil? or app.class == ActionDispatch::Session::CacheStore
+
+    app.destroy_session(nil, session_id, nil )
 
     ::DeviseCasAuthenticatable::SingleSignOut::Strategies.current_strategy.delete_session_index(session_index)
   end

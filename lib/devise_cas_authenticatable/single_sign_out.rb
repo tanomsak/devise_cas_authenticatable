@@ -2,6 +2,8 @@ module DeviseCasAuthenticatable
   module SingleSignOut
     module SetSession
       def set_session_with_storage(env, sid, session_data, options={})
+
+        # Rails.logger.info "set_session_with_storage #{sid}, #{session_data} , #{options}"
         if session_data['cas_last_valid_ticket_store']
           ::DeviseCasAuthenticatable::SingleSignOut::Strategies.current_strategy.store_session_id_for_index(session_data['cas_last_valid_ticket'], sid)
           session_data['cas_last_valid_ticket_store'] = nil
